@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Clima</title>
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/lucide-static@latest/font/lucide.css" />
+
+    <script src="js/raindrop/index.js"></script>
+</head>
+
+<body>
+    <main id="root">
+        <canvas id="canvas"></canvas>
+
+        <header class="top-header">
+            <form action="" class="search-form">
+                <input type="text" name="search-city-box" id="search-city-box" placeholder="Digite o nome da cidade...">
+                <button type="submit" class="search-btn" aria-label="Buscar">
+                    <i class="lucide icon-search"></i>
+                </button>
+            </form>
+        </header>
+
+        <main class="container">
+            <section class="content">
+                <section class="temp-card">
+                    <div class="title">
+                        <div class="temp-row">
+                            <h1 id="temp-text">--<span>°C</span></h1>
+                            <i id="temp-icon" class="lucide icon-cloud weather-icon"></i>
+                        </div>
+                        <h2 id="city-text">Carregando...</h2>
+                        <h3 id="extra-text">--:-- | Lat:- Lon:-</h3>
+                    </div>
+                </section>
+
+                <section class="weather-card">
+                    <div class="wpo-card">
+                        <h1 id="wmo-text">Buscando informações...</h1>
+                    </div>
+
+                    <div class="info-cards">
+                        <div class="info-box">
+                            <span>Timezone</span>
+                            <h2 id="timezone-text">--/--</h2>
+                        </div>
+                        <div class="info-box">
+                            <span>Vento</span>
+                            <h2 id="wind-text">-- km/h</h2>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </main>
+
+    <script src="js/raindrop/raindrop.js"></script>
+    <script src="js/index.js"></script>
+</body>
+
+</html>
