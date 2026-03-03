@@ -1,0 +1,25 @@
+from pathlib import Path
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from routes import routes
+
+# Define o caminho para a pasta raiz do projeto
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# Cria uma aplicação FastAPI ASVG e inclui as rotas
+def criarApp():
+    app = FastAPI(title="OpenMeteo API", version="1.0.0")
+    app.include_router(routes, prefix="/api/v1/") # Define as rotas do routes para serem com "/api/v1/" no inicio
+
+    return app
+app = criarApp()
+
+# Rota raiz com o arquivo index.html
+@app.get("/")
+def home():
+    return FileResponse(PROJECT_ROOT / "static/index.html")
+
+# Rota para verificar se a API está funcionando
+@app.get("/status")
+def status():
+    return {"status": "ok"}

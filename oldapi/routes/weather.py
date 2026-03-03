@@ -1,4 +1,3 @@
-﻿from collections import defaultdict
 from datetime import datetime
 from json import loads
 from urllib.parse import urlencode
@@ -25,26 +24,31 @@ def fetch_open_meteo(latitude: float, longitude: float, forecast_days: int) -> d
 
 
 def aggregate_daily(hourly: dict) -> list[dict]:
-    grouped: dict[str, dict[str, list[float | int]]] = defaultdict(
-        lambda: {"temperature": [], "humidity": [], "weather_codes": []}
-    )
+    grouped: dict[str, dict[str, list[float | int]]] = {}
 
     times = hourly.get("time", [])
     temperatures = hourly.get("temperature_2m", [])
     humidities = hourly.get("relative_humidity_2m", [])
     weather_codes = hourly.get("weather_code", [])
 
-    for i, timestamp in enumerate(times):
+    min_size = min(len(times), len(temperatures), len(humidities), len(weather_codes))
+
+    for i in range(min_size):
+        timestamp = times[i]
         day = timestamp.split("T")[0]
+
+        if day not in grouped:
+            grouped[day] = {"temperature": [], "humidity": [], "weather_codes": []}
+
         grouped[day]["temperature"].append(temperatures[i])
         grouped[day]["humidity"].append(humidities[i])
         grouped[day]["weather_codes"].append(weather_codes[i])
 
     rows = []
     for day, values in grouped.items():
-        temperature_avg = sum(values["temperature"]) / len(values["temperature"])
-        humidity_avg = sum(values["humidity"]) / len(values["humidity"])
-        weather_mode = max(values["weather_codes"], key=values["weather_codes"].count)
+        temperature_avg = _average(values["temperature"])
+        humidity_avg = _average(values["humidity"])
+        weather_mode = _most_common_code(values["weather_codes"])
         rows.append(
             {
                 "date": day,
@@ -55,6 +59,49 @@ def aggregate_daily(hourly: dict) -> list[dict]:
         )
 
     return sorted(rows, key=lambda row: row["date"])
+
+
+def _average(numbers: list[float | int]) -> float:
+    if not numbers:
+        return 0.0
+    return float(sum(numbers) / len(numbers))
+
+
+def _most_common_code(codes: list[float | int]) -> int:
+    if not codes:
+        return 0
+
+    counts: dict[int, int] = {}
+    for code in codes:
+        key = int(code)
+        counts[key] = counts.get(key, 0) + 1
+
+    return max(counts, key=counts.get)
+
+
+def _build_records_query(
+    city: str | None,
+    start_date: str | None,
+    end_date: str | None,
+) -> tuple[str, list[str]]:
+    query = (
+        "SELECT id, city, record_date, temperature, humidity, weather_code, created_at "
+        "FROM weather_daily WHERE 1=1"
+    )
+    params: list[str] = []
+
+    if city:
+        query += " AND city = ?"
+        params.append(city.strip())
+    if start_date:
+        query += " AND record_date >= ?"
+        params.append(start_date)
+    if end_date:
+        query += " AND record_date <= ?"
+        params.append(end_date)
+
+    query += " ORDER BY record_date ASC"
+    return query, params
 
 
 @router.post("/collect")
@@ -127,23 +174,7 @@ def list_records(
     if end_date:
         _validate_date(end_date, "end_date")
 
-    query = (
-        "SELECT id, city, record_date, temperature, humidity, weather_code, created_at "
-        "FROM weather_daily WHERE 1=1"
-    )
-    params: list[str] = []
-
-    if city:
-        query += " AND city = ?"
-        params.append(city.strip())
-    if start_date:
-        query += " AND record_date >= ?"
-        params.append(start_date)
-    if end_date:
-        query += " AND record_date <= ?"
-        params.append(end_date)
-
-    query += " ORDER BY record_date ASC"
+    query, params = _build_records_query(city, start_date, end_date)
 
     with get_connection() as conn:
         rows = conn.execute(query, params).fetchall()
