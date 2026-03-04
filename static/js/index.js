@@ -45,17 +45,24 @@ function climaAtual(code) { // Pega o clima atual com base no codigo da api
 function mudarTema(atual) {
     const noite = isNoite(atual.time)
     const clima = climaAtual(atual.weathercode)
+    const canvas = document.querySelector("#canvas");
     let img = ""
 
     if (clima === "chuva") {
         img = noite ? "assets/rain-night.jpg" : "assets/rain-day.jpg"
-        raindropFX(true, img)
+        controlarChuva(true, img)
     } else if (clima === "neve") {
         img = noite ? "assets/snow-night.jpg" : "assets/snow-day.jpg"
-        raindropFX(false)
+        if (canvas) {
+            canvas.style.visibility = "hidden";
+            controlarChuva(false)
+        }
     } else {
         img = noite ? "assets/night.jpg" : "assets/sunny-day.jpg"
-        raindropFX(false)
+        if (canvas) {
+            canvas.style.visibility = "hidden";
+            controlarChuva(false)
+        }
     }
 
     document.body.style.backgroundImage = `url('${img}')`

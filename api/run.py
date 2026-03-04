@@ -11,6 +11,6 @@ def abrirNavegador():
 # Executa o esse arquivo só se ele for solicitado diretamente
 if __name__ == "__main__": 
     # Thread para abrir o navegador
-    threading.Thread(target=abrirNavegador, daemon=True)
+    threading.Thread(target=abrirNavegador, daemon=True).start()
     # Método do uvicorn para criar um app ASVG
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)

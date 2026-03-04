@@ -3,14 +3,19 @@ let canvas = null;
 
 function init() {
     if (canvas) return;
+
     canvas = document.querySelector("#canvas");
+    if (!canvas) return console.warn("Canvas não encontrado!");
 
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width;
     canvas.height = rect.height;
 }
 
-function raindropFX(status, bg) {
+function controlarChuva(status, bg) {
+    init();
+    if (!canvas) return; 
+
     if (status) {
         if (raindrop) return;
 
@@ -26,6 +31,7 @@ function raindropFX(status, bg) {
         });
 
         raindrop.start();
+        canvas.style.visibility = "visible";
 
         window.addEventListener("resize", tamanhoTela);
     } else {
@@ -34,8 +40,12 @@ function raindropFX(status, bg) {
         raindrop.stop();
         raindrop = null;
 
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (canvas) {
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
 
         window.removeEventListener("resize", tamanhoTela);
     }
@@ -50,4 +60,4 @@ function tamanhoTela() {
     raindrop.resize(rect.width, rect.height);
 }
 
-window.raindropFX = raindropFX
+window.controlarChuva = controlarChuva
