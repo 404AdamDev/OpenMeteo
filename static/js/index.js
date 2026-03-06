@@ -68,11 +68,13 @@ function mudarTema(atual) {
     document.body.style.backgroundImage = `url('${img}')`
     document.body.style.backgroundSize = "cover"
     document.body.style.backgroundPosition = "center"
+
+    // Ajusta a opacidade do overlay com base no tema
     document.body.style.setProperty("--overlay-opacity", noite ? "0.9" : "0.6")
 }
 
 
-// Sistema geral
+// -- Sistema geral
 function updateTela(data, cidade, geoLoc) {
     const climaAtual = data.current_weather
     const wmoCode =  climaAtual.weathercode
@@ -90,21 +92,41 @@ function updateTela(data, cidade, geoLoc) {
     mudarTema(climaAtual)
 }
 
-async function getClima(lat, lon, cidade) {
+async function postData(data) {
+    console.log("ENVIANDO DADOS:", data)
     try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,wind_speed_10m,weather_code&current_weather=true&timezone=auto`
+        const resposta = await fetch("http://127.0.0.1:8000/api/v1/weather/salvar-clima", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+        if (!resposta.ok) throw new Error(`API retornou ${resposta.status}`)
+        
+        const respostaData = await resposta.json()
+        console.log("Dados enviados com sucesso:", respostaData)
+    } catch (error) {
+        console.error("[ERROR] Falha ao enviar dados para o servidor:", error)
+    }
+}
+
+async function getClima(lat, lon, cidade) { // Busca os dados climáticos usando a API do Open-Meteo
+    try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,wind_speed_10m,weather_code,relative_humidity_2m&current_weather=true&timezone=auto`
         const resposta = await fetch(url)
         if (!resposta.ok) throw new Error(`API retornou ${resposta.status}`)
 
         const data = await resposta.json()
         updateTela(data, cidade, {lat, lon})
+        postData({ cidade: cidade, clima_data: data })
     } catch (error) {
         console.error("[ERROR] Falha ao buscar dados climáticos:", error)
         alert("Ops... Não foi possível carregar os dados climáticos. Verifique sua conexão ou tente novamente mais tarde.")
     }
 }
 
-async function acharCidade(nome) {
+async function acharCidade(nome) { // Busca a cidade e suas coordenadas usando a API geocoding do Open-Meteo
     try {
         const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(nome)}&count=1&language=pt&format=json`
         const resposta = await fetch(url)
@@ -123,6 +145,8 @@ async function acharCidade(nome) {
     }
 }
 
+
+// -- Eventos
 document.querySelector('.search-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const cidade = document.getElementById('search-city-box').value.trim();
@@ -132,6 +156,6 @@ document.querySelector('.search-form').addEventListener('submit', (e) => {
     }
 });
 
-window.onload = () => {
+window.onload = () => { // Carrega o clima de Contagem por padrão
     acharCidade("Contagem")
 }

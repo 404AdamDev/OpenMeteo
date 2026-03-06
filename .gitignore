@@ -1,5 +1,5 @@
-api/.venv
-api/__pycache__/
-api/.pytest_cache/
-api/routes/__pycache__/
+*.venv
+*__pycache__/
+*.pytest_cache/
+*routes/__pycache__/
 #oldapi
