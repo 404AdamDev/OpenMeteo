@@ -51,7 +51,7 @@ def save_data(data: dict, dias = 7):
 @router.post("/salvar-clima?forecast-days={dias}")
 def salvar_clima(data: dict, dias: int = Query(..., description="Número de dias para previsão climática (1-7)")):
     try:
-        save_data(data)
+        save_data(data, dias)
     except Exception as exc:
         raise HTTPException( # Retorna um erro 500 caso ocorra algum problema ao salvar os dados climáticos
             status_code=500,
